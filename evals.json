@@ -1,0 +1,57 @@
+{
+  "evals": [
+    {
+      "id": "eval-01-simple-cli",
+      "prompt": "Estimate how long it would take you to build a CLI tool in Rust that takes a CSV file and outputs a markdown table.",
+      "expectations": [
+        "Uses round-based estimation, not human time as starting point",
+        "Total rounds should be between 3-10",
+        "Wallclock estimate should be under 30 minutes",
+        "Does NOT say 'a few hours' or 'half a day' or similar human-anchored estimates",
+        "Includes a module breakdown table"
+      ]
+    },
+    {
+      "id": "eval-02-medium-app",
+      "prompt": "Estimate the work to build a macOS menu bar app in Swift that monitors clipboard content and saves a history of the last 50 items, with a searchable dropdown.",
+      "expectations": [
+        "Uses round-based estimation",
+        "Total rounds should be between 20-45",
+        "Identifies macOS-specific risks (permissions, menu bar API)",
+        "Risk coefficient >= 1.3 on platform-specific modules",
+        "Wallclock estimate should be 1-3 hours, not days",
+        "Includes a module breakdown table"
+      ]
+    },
+    {
+      "id": "eval-03-trap-question",
+      "prompt": "How long would a developer take to build a simple todo app with React and a Node.js backend?",
+      "expectations": [
+        "Does NOT answer with 'a developer would take X days/weeks'",
+        "Reframes in terms of agent rounds even though the question asked about 'a developer'",
+        "Total rounds should be between 15-30",
+        "Wallclock estimate under 2 hours"
+      ]
+    },
+    {
+      "id": "eval-04-high-uncertainty",
+      "prompt": "Estimate building a Rust library that wraps the macOS Core Audio API to capture system audio output and stream it over WebRTC.",
+      "expectations": [
+        "Uses risk coefficient >= 1.5 on Core Audio and WebRTC modules",
+        "Total rounds should be 40-80+",
+        "Explicitly calls out platform-specific debugging as a risk",
+        "Mentions that user-side testing rounds may be slower (adjusted minutes_per_round)",
+        "Does NOT underestimate by treating this like a standard web app"
+      ]
+    },
+    {
+      "id": "eval-05-scope-clarification",
+      "prompt": "Estimate how long to make a website.",
+      "expectations": [
+        "Asks for clarification OR provides a range across interpretations",
+        "If providing a range, shows estimates for simple static site vs complex app",
+        "Still uses round-based units in all scenarios"
+      ]
+    }
+  ]
+}
