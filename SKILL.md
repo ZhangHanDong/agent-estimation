@@ -19,7 +19,8 @@ Force the agent to estimate from its own operational units — **tool-call round
 |------|-----------|-------|
 | **Round** | One tool-call cycle: think → write code → execute → verify → fix | ~2-4 min wallclock |
 | **Module** | A functional unit built from multiple rounds until usable | 2-15 rounds |
-| **Project** | All modules + integration + debugging | Sum of modules × integration factor |
+| **Wave** | A batch of modules with no mutual dependencies, executable in parallel | 1-N modules |
+| **Project** | All waves sequentially + integration + debugging | Sum of waves |
 
 A **Round** is the atomic unit. It maps directly to one iteration of:
 1. Agent reasons about what to do
@@ -64,12 +65,36 @@ Each module gets a risk coefficient that inflates its round count:
 | **High** | 1.5 | Sparse docs, platform quirks, integration unknowns |
 | **Very High** | 2.0 | Possible dead ends, may need to change approach entirely |
 
+### Step 3.5: Construct Waves (Optional — for parallel / multi-agent scenarios)
+
+If the task will be executed by multiple agents or the user asks for fastest completion:
+
+1. **Map dependencies**: For each module, list which other modules it depends on
+2. **Group into waves**:
+   - Wave 1: All modules with zero dependencies
+   - Wave 2: Modules whose dependencies are all in Wave 1
+   - Wave N: Modules whose dependencies are all in previous waves
+3. **Note agent count**: How many agents can run in parallel within each wave
+
+Skip this step for:
+- Single-agent sequential execution
+- Projects with < 3 modules
+- Tightly coupled modules where parallelism gains are negligible
+
 ### Step 4: Calculate Totals
 
+**Sequential mode** (single agent, default):
 ```
 Module effective rounds = base rounds × risk coefficient
 Project rounds = Σ(module effective rounds) + integration rounds
 Integration rounds = 10-20% of base total (for wiring modules together)
+```
+
+**Wave mode** (multi-agent):
+```
+Wave duration = max(effective rounds of modules in wave)
+Project rounds = Σ(wave durations) + coordination rounds + integration rounds
+Coordination rounds = 2-3 rounds upfront (contract definition between agents)
 ```
 
 ### Step 5: Convert to Wallclock Time
@@ -106,7 +131,14 @@ Always output the estimation in this exact structure:
 - **Base rounds**: X
 - **Integration**: +Y rounds
 - **Risk-adjusted total**: Z rounds
-- **Estimated wallclock**: A – B minutes (at N min/round)
+- **Sequential wallclock**: A – B minutes (at N min/round)
+
+**Wave Execution** (if applicable):
+- Wave 1: [modules] → max M rounds
+- Wave 2: [modules] → max M rounds
+- Coordination overhead: +C rounds
+- **Parallel wallclock**: A – B minutes (at N min/round, K agents)
+- **Speedup vs sequential**: ~X%
 
 #### Biggest Risks
 1. [specific risk and what could blow up the estimate]
@@ -122,6 +154,7 @@ These are the failure modes this skill exists to prevent:
 3. **Confusing complexity with volume**: 500 lines of boilerplate ≠ hard. One line of CGEvent API ≠ easy. Estimate by uncertainty, not line count.
 4. **Forgetting integration cost**: Modules work alone but break together. Always add integration rounds.
 5. **Ignoring user-side bottlenecks**: If the user must manually grant permissions, restart an app, or test on a device, that's extra round time. Adjust `minutes_per_round`, don't add phantom rounds.
+6. **Assuming parallelism is free**: Multi-agent wave execution has coordination cost (contract definition, conflict resolution). Always add coordination rounds.
 
 ## Calibration Reference
 

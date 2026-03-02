@@ -93,15 +93,17 @@ The skill teaches the agent a three-layer estimation framework:
 |-------------|---------------------------------------------------------|--------------------------------------|
 | **Round**   | One tool-call cycle: think → write → execute → verify → fix | ~2-4 min wallclock                   |
 | **Module**  | A functional unit built from multiple rounds            | 2-15 rounds                          |
-| **Project** | All modules + integration + debugging                   | Sum of modules x integration factor  |
+| **Wave**    | A batch of modules with no mutual dependencies, executable in parallel | 1-N modules              |
+| **Project** | All waves sequentially + integration + debugging        | Sum of waves                         |
 
 ### Estimation Procedure
 
 1. **Decompose** the task into independently buildable modules
 2. **Estimate rounds** per module using calibrated anchors (1-2 for boilerplate, 3-5 for moderate, 5-10 for exploratory, 8-15 for high uncertainty)
 3. **Apply risk coefficients** (1.0 low → 2.0 very high) based on documentation quality, platform quirks, and integration unknowns
-4. **Add integration rounds** (10-20% of base total)
-5. **Convert to wallclock** only at the end (default: 3 min/round)
+4. **Construct waves** (optional, for multi-agent): group modules by dependency into parallel batches, add coordination overhead
+5. **Add integration rounds** (10-20% of base total)
+6. **Convert to wallclock** only at the end (default: 3 min/round)
 
 ### Anti-Patterns Prevented
 
@@ -110,6 +112,28 @@ The skill teaches the agent a three-layer estimation framework:
 - **Complexity ≠ volume**: 500 lines of boilerplate ≠ hard; 1 line of CGEvent API ≠ easy
 - **Forgetting integration cost**: Modules work alone but break together
 - **Ignoring user-side bottlenecks**: Manual permission grants, device testing, etc.
+- **Assuming parallelism is free**: Multi-agent coordination has real cost
+
+### Wave Execution Example
+
+For multi-agent scenarios, the skill outputs both sequential and parallel estimates:
+
+```markdown
+#### Summary
+
+- **Base rounds**: 47
+- **Integration**: +9 rounds
+- **Risk-adjusted total**: 63 rounds
+- **Sequential wallclock**: ~189 min (at 3 min/round)
+
+**Wave Execution** (3 agents):
+- Wave 1: [Backend API, React scaffold, Auth flow] → max 5 rounds
+- Wave 2: [WebSocket streaming, Dashboard layout, Charts] → max 12 rounds
+- Wave 3: [State management, Tests] → max 9 rounds
+- Coordination overhead: +3 rounds
+- **Parallel wallclock**: ~108 min (at 3 min/round, 3 agents)
+- **Speedup vs sequential**: ~43%
+```
 
 ## Files
 

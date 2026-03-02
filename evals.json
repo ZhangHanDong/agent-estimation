@@ -52,6 +52,27 @@
         "If providing a range, shows estimates for simple static site vs complex app",
         "Still uses round-based units in all scenarios"
       ]
+    },
+    {
+      "id": "eval-06-wave-estimation",
+      "prompt": "I have a team of 3 Claude Code agents. Estimate how fast they can build a REST API + React frontend + mobile app in parallel.",
+      "expectations": [
+        "Uses wave-based estimation, not just sequential rounds",
+        "Groups independent modules into waves",
+        "Shows both sequential and parallel wallclock estimates",
+        "Includes coordination/contract overhead rounds",
+        "Parallel estimate is significantly less than sequential"
+      ]
+    },
+    {
+      "id": "eval-07-single-agent-no-wave",
+      "prompt": "Estimate building a small Rust CLI tool that parses TOML and generates a config struct.",
+      "expectations": [
+        "Does NOT use wave-based estimation for this small task",
+        "Uses simple sequential round model",
+        "Total rounds 3-8",
+        "No mention of waves or parallel execution"
+      ]
     }
   ]
 }

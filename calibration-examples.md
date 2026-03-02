@@ -45,6 +45,20 @@ One Mac keyboard controlling 27 devices over LAN. (The KeyboardCast example.)
 | Integration | +4 | 1.3 | 5 | wiring async events to UI |
 | **Total** | **29** | | **36** | ~1.5-2 hours |
 
+**Wave Analysis** (3 agents):
+
+| Wave | Modules | Max Effective Rounds | Notes |
+|------|---------|---------------------|-------|
+| Wave 1 | HTTP/WS server, QR code gen, Phone web client | 3 | all independent, run in parallel |
+| Wave 2 | Makepad main UI, Client mgmt state, Category filtering UI | 10 | depend on server/client contracts |
+| Wave 3 | CGEvent keyboard capture | 8 | depends on UI + server |
+| Integration | wiring async events to UI | 5 | after all waves |
+
+- Coordination overhead: +3 rounds (contract definition for server↔client protocol)
+- **Sequential wallclock**: ~108 min (36 rounds × 3 min)
+- **Parallel wallclock**: ~57 min (3 + 10 + 8 + 5 = 26 rounds × 3 min, minus overlap; effective ~19 wave rounds + 3 coordination + 5 integration = 27 rounds)
+- **Speedup vs sequential**: ~47%
+
 ### REST API with Auth + DB
 Standard CRUD API with JWT auth and Postgres.
 
@@ -79,6 +93,20 @@ React frontend + Rust backend + WebSocket streaming.
 | Tests | 6 | 1.5 | 9 | E2E flaky, mocking WS |
 | Integration | +6 | 1.5 | 9 | cross-stack debugging |
 | **Total** | **47** | | **63** | ~3-3.5 hours |
+
+**Wave Analysis** (3 agents):
+
+| Wave | Modules | Max Effective Rounds | Notes |
+|------|---------|---------------------|-------|
+| Wave 1 | Backend API, React scaffold + routing, Auth flow (frontend) | 5 | all independent foundations |
+| Wave 2 | WebSocket streaming, Dashboard layout, Chart components | 12 | depend on backend/frontend scaffolds |
+| Wave 3 | State management, Tests | 9 | depend on WS + UI components |
+| Integration | cross-stack debugging | 9 | after all waves |
+
+- Coordination overhead: +3 rounds (API contract, data schema alignment)
+- **Sequential wallclock**: ~189 min (63 rounds × 3 min)
+- **Parallel wallclock**: ~108 min (5 + 12 + 9 + 9 = 35 wave rounds + 3 coordination = 38 rounds × 3 min; with 3 agents effective ~36 rounds)
+- **Speedup vs sequential**: ~43%
 
 ---
 
