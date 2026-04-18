@@ -33,6 +33,21 @@ A **Round** is the atomic unit. It maps directly to one iteration of:
 
 When asked to estimate a task, follow these steps in order:
 
+### Step 0: Reconnaissance (Anti-Phantom Modules)
+
+**Before** listing modules, actively check what's already in place. Use grep/read/ls to verify:
+
+- Does the field/type/function the module would add already exist?
+- Is the framework already installed/configured?
+- Does a similar module already solve half the problem?
+
+This step often cuts 30-50% of phantom modules. The biggest source of overestimation is listing work that's already done. A 2-minute reconnaissance can eliminate 10+ rounds of imagined work.
+
+**Concrete anti-patterns this prevents:**
+- Listing "Add X field to schema" when the field already exists
+- Listing "Build Y adapter" when the library already ships with one
+- Listing "Write Z parser" when grep reveals it's already implemented
+
 ### Step 1: Decompose into Modules
 
 Break the task into functional modules. Each module should be independently buildable and testable. Ask yourself: "What are the distinct pieces I would build one at a time?"
@@ -108,9 +123,12 @@ Wallclock time = project rounds × minutes_per_round
 Default `minutes_per_round` = **3 minutes** (includes agent generation time + user review time).
 
 Adjust this parameter based on context:
+- **Rapid batch execution**, user only reviews at commits (no per-step review) → **1 min/round**
 - Fast iteration, user barely reviews → 2 min/round
 - Complex domain, user carefully reviews each step → 4 min/round
 - User needs to manually test (mobile, hardware, permissions) → 5 min/round
+
+**Rapid batch signal**: if the user says things like "just do it", "continue", "go ahead" without reviewing intermediate output, you're in 1 min/round territory. Tool calls fire back-to-back with no human-in-loop gate.
 
 ## Output Format
 
