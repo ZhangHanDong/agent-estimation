@@ -128,3 +128,35 @@ Common sources of estimate shrinkage:
 - **User provides existing code to extend**: modules may drop to 1-2 rounds
 - **Agent has done this exact pattern before in the conversation**: 1 round
 - **Copy-paste from a working sibling module**: 1 round
+
+## Real-World Calibration Log
+
+### 2026-04-17 — ChronicleCore-Ark: Expert Routing Table Injection
+
+Inject a markdown table of 38 experts (codename, title, "use when") into all Claude sessions' systemPrompt so the model can proactively suggest summoning appropriate experts.
+
+**Initial estimate** (before reconnaissance):
+
+| Module | Base | Risk | Effective | Notes |
+|--------|------|------|-----------|-------|
+| Parse `Use when` from EXPERT.md | 2 | 1.0 | 2 | Boilerplate |
+| Add `Use when` to all 38 experts | 3 | 1.3 | 4 | Content writing × 38 |
+| `buildRoutingTable()` formatter | 2 | 1.0 | 2 | Pure string |
+| Inject in `getExpertSystemPrompt()` | 2 | 1.3 | 3 | Integration |
+| Verify | 2 | 1.0 | 2 | Log inspection |
+
+**Total: 13 rounds × 3 min = 39 min wallclock**
+
+**Actual outcome: ~5 rounds × 1 min = 5.5 min wallclock**
+
+**What blew the estimate (7× overestimate):**
+
+1. **Phantom module: "Add Use when to all 38 experts" (-4 rounds).** All 38 experts' SKILL.md `description` fields ALREADY contained `Use when: ...`. A single `grep -c "Use when" .../*/SKILL.md` would have revealed this BEFORE listing the module. This is exactly the trap Step 0 (Reconnaissance) now prevents.
+2. **Phantom verification module (-2 rounds).** Once `tsc --noEmit` passed and `pnpm build:electron` succeeded, no separate verification pass was needed. For low-risk changes, the compile/build itself is verification.
+3. **Wrong min/round tier (-2 min × 5 rounds = 10 min).** User was in rapid batch mode ("好", "繼續", "好") — no per-step review. Should have used 1 min/round, not 3.
+
+**Lessons that updated the skill:**
+
+- Added **Step 0: Reconnaissance** to force `grep`/`ls`/`read` before listing modules
+- Added **1 min/round tier (rapid batch execution)** for no-gate scenarios
+- Added signal-detection for rapid batch mode (user says "go", "continue" without reviewing)
